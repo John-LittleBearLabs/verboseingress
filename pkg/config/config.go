@@ -156,6 +156,7 @@ func (conf *Config) Init() error {
 }
 
 func (c *Config) InitLogger(values ...interface{}) error {
+	c.Logging.Level = "debug"
 	zl, err := logger.NewZapLogger(&c.Logging)
 	if err != nil {
 		return err

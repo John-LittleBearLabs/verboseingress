@@ -80,6 +80,7 @@ func NewInput(ctx context.Context, p *params.Params, g *stats.LocalMediaStatsGat
 
 	srcs := src.GetSources()
 	if len(srcs) == 0 {
+		logger.Errorw("NewInput: src.GetSources() is empty", nil);
 		return nil, errors.ErrSourceNotReady
 	}
 

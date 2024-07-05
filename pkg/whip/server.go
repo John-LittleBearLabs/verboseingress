@@ -192,6 +192,7 @@ func (s *WHIPServer) CloseHandler(resourceId string) {
 }
 
 func (s *WHIPServer) Stop() {
+	logger.Errorw("WHIP server Stop() called", nil)
 	s.cancel()
 }
 

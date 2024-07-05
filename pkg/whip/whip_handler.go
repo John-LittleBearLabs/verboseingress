@@ -99,7 +99,7 @@ func (h *whipHandler) Init(ctx context.Context, p *params.Params, sdpOffer strin
 
 	h.logger = p.GetLogger()
 	h.params = p
-
+	logger.Infow("whip offer received", "SDP", sdpOffer)
 	h.updateSettings()
 
 	offer := &webrtc.SessionDescription{
@@ -164,6 +164,7 @@ loop:
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Errorw("whipHandler Start(): ctx.Done", nil)
 			return nil, errors.ErrSourceNotReady
 		case track := <-h.trackAddedChan:
 			mimeTypes[streamKindFromCodecType(track.Kind())] = track.Codec().MimeType
@@ -334,15 +335,18 @@ func (h *whipHandler) createPeerConnection(api *webrtc.API) (*webrtc.PeerConnect
 }
 
 func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDescription) (string, error) {
+	h.logger.Infow("getSDPAnswer")
 	// Set the remote SessionDescription
 	err := h.pc.SetRemoteDescription(*offer)
 	if err != nil {
+		h.logger.Errorw("SetRemoteDescription", err)
 		return "", err
 	}
 
 	// Create an answer
 	answer, err := h.pc.CreateAnswer(nil)
 	if err != nil {
+		h.logger.Errorw("CreateAnswer", err)
 		return "", err
 	}
 
@@ -351,6 +355,7 @@ func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDes
 
 	// Sets the LocalDescription, and starts our UDP listeners
 	if err = h.pc.SetLocalDescription(answer); err != nil {
+		h.logger.Errorw("SetLocalDescription", err)
 		return "", err
 	}
 
@@ -363,6 +368,7 @@ func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDes
 
 	parsedAnswer, err := h.pc.LocalDescription().Unmarshal()
 	if err != nil {
+		h.logger.Errorw("parsedAnswer", err)
 		return "", err
 	}
 	for _, m := range parsedAnswer.MediaDescriptions {
@@ -529,6 +535,7 @@ loop:
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Errorw("whipHandler runSession(): ctx.Done", nil)
 			return errors.ErrSourceNotReady
 		case resErr := <-result:
 			trackDoneCount++
